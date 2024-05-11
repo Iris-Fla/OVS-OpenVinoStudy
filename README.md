@@ -12,7 +12,7 @@
 
 ## Venvの入り方
 ```
-python -m venv venv
+py -3.10 -m venv venv
 venv\Scripts\Activate.ps1 
 pip install -r .\requirements.txt
 ```
