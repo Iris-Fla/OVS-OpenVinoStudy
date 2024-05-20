@@ -18,4 +18,4 @@ pip install -r .\requirements.txt
 ```
 
 ## IntelOpenVinoに対応しているか確認する方法
-check.pyを動かしてInfo:GPUにAvailable_Devicesが1以上あることを確認してください。(ない場合は"GPU"→"CPU"に変更する必要があるかも...?)
+check.pyを動かしてInfo:GPUにAvailable_Devicesが1以上あることを確認してください。
