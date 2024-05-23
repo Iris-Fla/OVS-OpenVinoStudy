@@ -8,7 +8,10 @@ __pycache__/
 /flagged/*
 /GroundingDINO/*
 /openvino_irs/*
-
+/StableDiffusionSample/unet.bin
+/StableDiffusionSample/unet.xml
+/StableDiffusionSample/text_encoder.bin
+/StableDiffusionSample/text_encoder.xml
 # C extensions
 *.so
 
