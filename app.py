@@ -27,4 +27,4 @@ demo = gr.Interface(
 try:
     demo.launch()
 except Exception:
-    demo.launch()
+    print("Error?")

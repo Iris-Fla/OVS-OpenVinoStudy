@@ -1,36 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # Object detection and masking from prompts with GroundedSAM (GroundingDINO + SAM) and OpenVINO
-# 
-# In this notebook, we provide the OpenVINO™ optimization for the combination of GroundingDINO + SAM = [GroundedSAM](https://github.com/IDEA-Research/Grounded-Segment-Anything) on Intel® platforms. 
-# 
-# GroundedSAM aims to detect and segment anything with text inputs. GroundingDINO is a language-guided query selection module to enhance object detection using input text. It selects relevant features from image and text inputs and returns predicted boxes with detections. The Segment Anything Model (SAM) produces high quality object masks from input prompts such as points or boxes, and it can be used to generate masks for all objects in an image. We use box predictions from GroundingDINO to mask the original image.
-# 
-# More details about the model can be found in the [paper](https://arxiv.org/abs/2401.14159), and the official [repository](https://github.com/IDEA-Research/Grounded-Segment-Anything).
-# 
-# ![image](https://github.com/openvinotoolkit/openvino_notebooks/assets/5703039/3c19063a-c60a-4d5d-b534-e1305a854180)
-# 
-# #### Table of contents:
-# - [Clone repository and install requirements](#Clone-repository-and-install-requirements)
-# - [Download checkpoints and load PyTorch model](#Download-checkpoints-and-load-PyTorch-model)
-# - [Convert GroundingDINO to OpenVINO IR format](#Convert-GroundingDINO-to-OpenVINO-IR-format)
-# - [Run OpenVINO optimized GroundingDINO](#Run-OpenVINO-optimized-GroundingDINO)
-# - [Convert SAM to OpenVINO IR](#Convert-SAM-to-OpenVINO-IR)
-# - [Combine GroundingDINO + SAM (GroundedSAM)](#Combine-GroundingDINO-+-SAM-(GroundedSAM))
-# - [Interactive GroundedSAM](#Interactive-GroundedSAM)
-# - [Cleanup](#Cleanup)
-# 
-
-# ### Clone repositories and install requirements
-# [back to top ⬆️](#Table-of-contents:)
-
-# In[ ]:
-
-
 # get_ipython().run_line_magic('pip', 'install -q "openvino>=2024.0" "torch>=2.1" opencv-python supervision transformers yapf pycocotools addict "gradio>=4.19" tqdm timm --extra-index-url https://download.pytorch.org/whl/cpu')
-
-
 # For faster computation and to limit RAM by default we use `EfficientSAM` for segmentation, but if you wish more accurate segmentation you can select vanilla `SAM`.
 
 # In[2]:

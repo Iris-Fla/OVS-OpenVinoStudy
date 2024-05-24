@@ -18,3 +18,4 @@ class EnJaTranslator:
         """
         result = self.trans(text)
         return  result[0]['translation_text']
+        
