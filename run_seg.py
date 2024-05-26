@@ -599,7 +599,7 @@ else:
 # In[27]:
 
 
-box_annotator = sv.BoxAnnotator()
+box_annotator = sv.BoundingBoxAnnotator()
 mask_annotator = sv.MaskAnnotator()
 
 annotated_image = np.array(pil_image)
@@ -706,39 +706,6 @@ def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_thresho
 
 
 # You can run interactive app with your own image and text prompts. To define prompt specify comma (or conjunction) separated names of objects you wish to segment. For demonstration, this demo already has two predefined examples. If many object are crowded and overlapping please increase threshold values in `Advanced options`.
-
-# In[ ]:
-
-
-import gradio as gr
-
-with gr.Accordion("Advanced options", open=False) as advanced:
-    box_threshold = gr.Slider(label="Box Threshold", minimum=0.0, maximum=1.0, value=0.3, step=0.05)
-    text_threshold = gr.Slider(label="Text Threshold", minimum=0.0, maximum=1.0, value=0.25, step=0.05)
-
-demo = gr.Interface(
-    run_grounding_sam,
-    [
-        gr.Image(),
-        gr.Dropdown(["det", "seg"], value="seg", label="task_type"),
-        gr.Textbox(value="bears", label="Text Prompt"),
-    ],
-    additional_inputs=[
-        box_threshold,
-        text_threshold,
-    ],
-    outputs=gr.Gallery(preview=True, object_fit="scale-down"),
-    examples=[
-        [f"{ground_dino_dir}/.asset/demo2.jpg", "seg", "dog, forest"],
-        [f"{ground_dino_dir}/.asset/demo7.jpg", "seg", "horses and clouds"],
-    ],
-    additional_inputs_accordion=advanced,
-)
-
-try:
-    demo.launch()
-except Exception:
-    demo.launch()
 # if you are launching remotely, specify server_name and server_port
 # demo.launch(server_name='your server name', server_port='server port in int')
 # Read more in the docs: https://gradio.app/docs/

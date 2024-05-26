@@ -8,10 +8,20 @@ __pycache__/
 /flagged/*
 /GroundingDINO/*
 /openvino_irs/*
-/StableDiffusionSample/unet.bin
-/StableDiffusionSample/unet.xml
-/StableDiffusionSample/text_encoder.bin
-/StableDiffusionSample/text_encoder.xml
+/flagged/*
+text_encoder.bin
+text_encoder.xml
+unet_calibration_example_input.pkl
+unet.bin
+unet.xml
+vae_decoder.bin
+vae_decoder.xml
+vae_encoder.bin
+vae_encoder.xml
+vae_encodr.bin
+vae_encodr.xml
+model_upcast_utils.py
+tiny-sd-image-generation.ipynb
 # C extensions
 *.so
 
