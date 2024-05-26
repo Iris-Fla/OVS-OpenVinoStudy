@@ -2,19 +2,13 @@ import gradio as gr
 import run_seg
 import run_stablediffusion
 from translator import EnJaTranslator, JaEnTranslator
-from transformers import CLIPTokenizer
-from diffusers.schedulers import LMSDiscreteScheduler
 
 en_translator = EnJaTranslator()
 ja_translator = JaEnTranslator()
-print(en_translator("Hello, I am a translator."))
-print(ja_translator("りんご"))
 
 
-with gr.Accordion("Advanced options", open=False) as advanced:
-    box_threshold = gr.Slider(label="Box Threshold", minimum=0.0, maximum=1.0, value=0.3, step=0.05)
-    text_threshold = gr.Slider(label="Text Threshold", minimum=0.0, maximum=1.0, value=0.25, step=0.05)
-
+def translate(text):
+    return en_translator(text)
 # demo = gr.Interface(
 #     run_seg.run_grounding_sam,
 #     [
@@ -36,6 +30,9 @@ with gr.Accordion("Advanced options", open=False) as advanced:
 def generate_from_text(text, negative_text, seed, num_steps, _=gr.Progress(track_tqdm=True)):
     result = run_stablediffusion.ov_pipe(text, negative_prompt=negative_text, num_inference_steps=num_steps, seed=seed)
     return result["sample"][0]
+
+def segmentation(image, text, box_threshold, text_threshold):
+    return run_seg.run_grounding_sam(image, "seg", text, box_threshold, text_threshold)
 
 with gr.Blocks() as demo:
     with gr.Tab("Text-to-Image generation"):
@@ -66,25 +63,15 @@ with gr.Blocks() as demo:
             [text_input, negative_text_input, seed_input, steps_input],
         )
     with gr.Tab("物体検知"):
-        run_seg.run_grounding_sam,
-        [
-            gr.Image(),
-            gr.Dropdown(["det", "seg"], value="seg", label="task_type"),
-            gr.Textbox(value="bears", label="Text Prompt"),
-        ],
-        additional_inputs=[
-            box_threshold,
-            text_threshold,
-        ],
-        outputs=gr.Gallery(preview=True, object_fit="scale-down"),
-        examples=[
-            [f"{run_seg.ground_dino_dir}/.asset/demo2.jpg", "seg", "dog, forest"],
-            [f"{run_seg.ground_dino_dir}/.asset/demo7.jpg", "seg", "horses and clouds"],
-        ],
-        additional_inputs_accordion=advanced,
-    with gr.Tab("翻訳&辞書"):
-        
-
+        with gr.Row():
+            input_image = gr.Image()
+            input_text = gr.Textbox(value="Candy", label="Text Prompt")
+            with gr.Accordion("Advanced options", open=False) as advanced:
+                box_threshold = gr.Slider(label="Box Threshold", minimum=0.0, maximum=1.0, value=0.3, step=0.05)
+                text_threshold = gr.Slider(label="Text Threshold", minimum=0.0, maximum=1.0, value=0.25, step=0.05)
+                with gr.Button.click(segmentation, [input_image, input_text, box_threshold, text_threshold]):
+                    with gr.Gallery(preview=True, object_fit="scale-down"):
+                        pass
 try:
     demo.queue().launch(debug=True)
 except Exception:

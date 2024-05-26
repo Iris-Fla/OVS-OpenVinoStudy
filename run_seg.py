@@ -599,7 +599,7 @@ else:
 # In[27]:
 
 
-box_annotator = sv.BoundingBoxAnnotator()
+box_annotator = sv.BoxAnnotator()
 mask_annotator = sv.MaskAnnotator()
 
 annotated_image = np.array(pil_image)
