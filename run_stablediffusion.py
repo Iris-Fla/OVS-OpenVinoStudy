@@ -139,20 +139,6 @@ del text_encoder
 gc.collect()
 
 
-# ### U-net
-# [back to top ⬆️](#Table-of-contents:)
-# 
-# U-net model has three inputs:
-# 
-# * `sample` - latent image sample from previous step. Generation process has not been started yet, so you will use random noise.
-# * `timestep` - current scheduler step.
-# * `encoder_hidden_state` - hidden state of text encoder.
-# 
-# Model predicts the `sample` state for the next step.
-
-# In[4]:
-
-
 import numpy as np
 from openvino import PartialShape, Type
 
@@ -676,21 +662,10 @@ class OVStableDiffusionPipeline(DiffusionPipeline):
         return timesteps, num_inference_steps - t_start
 
 
-# ## Configure Inference Pipeline
-# [back to top ⬆️](#Table-of-contents:)
-# 
 
-# First, you should create instances of OpenVINO Model.
-
-# In[7]:
 
 
 core = ov.Core()
-
-
-# Select device from dropdown list for running inference using OpenVINO.
-
-# In[8]:
 
 
 import ipywidgets as widgets
