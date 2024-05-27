@@ -62,16 +62,7 @@ with gr.Blocks() as demo:
             ],
             [text_input, negative_text_input, seed_input, steps_input],
         )
-    with gr.Tab("物体検知"):
-        with gr.Row():
-            input_image = gr.Image()
-            input_text = gr.Textbox(value="Candy", label="Text Prompt")
-            with gr.Accordion("Advanced options", open=False) as advanced:
-                box_threshold = gr.Slider(label="Box Threshold", minimum=0.0, maximum=1.0, value=0.3, step=0.05)
-                text_threshold = gr.Slider(label="Text Threshold", minimum=0.0, maximum=1.0, value=0.25, step=0.05)
-                with gr.Button.click(segmentation, [input_image, input_text, box_threshold, text_threshold]):
-                    with gr.Gallery(preview=True, object_fit="scale-down"):
-                        pass
+        
 try:
     demo.queue().launch(debug=True)
 except Exception:

@@ -702,8 +702,6 @@ device = widgets.Dropdown(
     disabled=False,
 )
 
-device
-
 
 # In[9]:
 
@@ -717,7 +715,6 @@ text_enc = core.compile_model(TEXT_ENCODER_OV_PATH, device.value)
 # 
 # On a GPU device a model is executed in FP16 precision. For Tiny-SD UNet model there known to be accuracy issues caused by this. Therefore, a special calibration procedure is used to selectively mark some operations to be executed in full precision.
 
-# In[10]:
 
 
 import pickle
@@ -771,25 +768,9 @@ from diffusers.utils import load_image
 
 import gradio as gr
 
-sample_img_url = "https://storage.openvinotoolkit.org/repositories/openvino_notebooks/data/data/image/tower.jpg"
-
-img = load_image(sample_img_url).save("tower.jpg")
-
 
 def generate_from_text(text, negative_text, seed, num_steps, _=gr.Progress(track_tqdm=True)):
     result = ov_pipe(text, negative_prompt=negative_text, num_inference_steps=num_steps, seed=seed)
-    return result["sample"][0]
-
-
-def generate_from_image(img, text, negative_text, seed, num_steps, strength, _=gr.Progress(track_tqdm=True)):
-    result = ov_pipe(
-        text,
-        img,
-        negative_prompt=negative_text,
-        num_inference_steps=num_steps,
-        seed=seed,
-        strength=strength,
-    )
     return result["sample"][0]
 
 
