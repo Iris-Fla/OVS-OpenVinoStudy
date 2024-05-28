@@ -2,7 +2,7 @@ import gradio as gr
 import run_seg
 
 def segmentation(image, text):
-    return run_seg.run_grounding_sam(image, "det", text,0.3,0.25)
+    return run_seg.run_grounding_sam(image, "seg", text,0.3,0.25)
 
 with gr.Blocks() as demo:
     with gr.Tab("物体検知"):

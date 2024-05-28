@@ -2,6 +2,7 @@
 # For faster computation and to limit RAM by default we use `EfficientSAM` for segmentation, but if you wish more accurate segmentation you can select vanilla `SAM`.
 
 # In[2]:
+import gradio as gr
 
 
 import ipywidgets as widgets
@@ -114,15 +115,15 @@ if not use_efficient_sam:
 # In[ ]:
 
 
-from groundingdino.models.GroundingDINO.bertwarper import (
+from GroundingDINO.groundingdino.models.GroundingDINO.bertwarper import (
     generate_masks_with_special_tokens_and_transfer_map,
 )
-from groundingdino.models import build_model
-from groundingdino.util.slconfig import SLConfig
-from groundingdino.util.utils import clean_state_dict
-from groundingdino.util import get_tokenlizer
-from groundingdino.util.utils import get_phrases_from_posmap
-from groundingdino.util.inference import Model
+from GroundingDINO.groundingdino.models import build_model
+from GroundingDINO.groundingdino.util.slconfig import SLConfig
+from GroundingDINO.groundingdino.util.utils import clean_state_dict
+from GroundingDINO.groundingdino.util import get_tokenlizer
+from GroundingDINO.groundingdino.util.utils import get_phrases_from_posmap
+from GroundingDINO.groundingdino.util.inference import Model
 
 
 # In[9]:
@@ -161,7 +162,7 @@ pt_grounding_dino_model, max_text_len, dino_tokenizer = load_pt_grounding_dino(G
 # load SAM model: EfficientSAM or vanilla SAM
 
 if use_efficient_sam:
-    from efficient_sam.efficient_sam import build_efficient_sam
+    from EfficientSAM.efficient_sam.efficient_sam import build_efficient_sam
 
     # Load EfficientSAM
     efficient_sam_model = build_efficient_sam(
@@ -170,7 +171,7 @@ if use_efficient_sam:
         checkpoint=EFFICIENT_SAM_CHECKPOINT_PATH,
     ).eval()
 else:
-    from segment_anything import build_sam, SamPredictor
+    from EfficientSAM.efficient_sam.segment_anything import build_sam, SamPredictor
 
     # Load SAM Model and SAM Predictor
     sam = build_sam(checkpoint=SAM_CHECKPOINT_PATH).to(PT_DEVICE)
@@ -250,7 +251,7 @@ ov_compiled_grounded_dino = core.compile_model(ov_dino_model, device.value)
 
 
 def transform_image(pil_image: Image.Image) -> torch.Tensor:
-    import groundingdino.datasets.transforms as T
+    import GroundingDINO.groundingdino.datasets.transforms as T
 
     transform = T.Compose(
         [
@@ -627,10 +628,10 @@ def draw_mask(mask, draw, random_color=False):
             random.randint(0, 255),
             random.randint(0, 255),
             random.randint(0, 255),
-            153,
+            255,
         )
     else:
-        color = (30, 144, 255, 153)
+        color = (0, 0, 0, 255)
 
     nonzero_coords = np.transpose(np.nonzero(mask))
 
@@ -663,7 +664,9 @@ run_grounding_sam is called every time "Submit" button is clicked
 """
 
 
+
 def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_threshold):
+    print("Running GroundingDINO")
     pil_image = Image.fromarray(image)
     size = image.shape[1], image.shape[0]  # size is WH image.shape HWC
 
@@ -686,11 +689,7 @@ def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_thresho
         mask_image = Image.new("RGBA", size, color=(0, 0, 0, 0))
         mask_draw = ImageDraw.Draw(mask_image)
         for mask in masks:
-            draw_mask(mask.numpy(), mask_draw, random_color=True)
-
-        image_draw = ImageDraw.Draw(pil_image)
-        for box, label in zip(boxes_filt, pred_phrases):
-            draw_box(box, image_draw, label)
+            draw_mask(mask.numpy(), mask_draw, random_color=False)
 
         pil_image = pil_image.convert("RGBA")
         pil_image.alpha_composite(mask_image)
