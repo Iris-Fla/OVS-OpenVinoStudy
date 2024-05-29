@@ -55,7 +55,7 @@
 import gc
 from diffusers import StableDiffusionPipeline
 
-model_id = "segmind/tiny-sd"
+model_id = "stabilityai/stable-diffusion-xl-base-1.0"
 
 pipe = StableDiffusionPipeline.from_pretrained(model_id).to("cpu")
 text_encoder = pipe.text_encoder

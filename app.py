@@ -1,14 +1,6 @@
 import gradio as gr
-import run_seg
+# import run_seg
 import run_stablediffusion
-from translator import EnJaTranslator, JaEnTranslator
-
-en_translator = EnJaTranslator()
-ja_translator = JaEnTranslator()
-
-
-def translate(text):
-    return en_translator(text)
 # demo = gr.Interface(
 #     run_seg.run_grounding_sam,
 #     [
@@ -31,9 +23,6 @@ def generate_from_text(text, negative_text, seed, num_steps, _=gr.Progress(track
     result = run_stablediffusion.ov_pipe(text, negative_prompt=negative_text, num_inference_steps=num_steps, seed=seed)
     return result["sample"][0]
 
-def segmentation(image, text, box_threshold, text_threshold):
-    return run_seg.run_grounding_sam(image, "seg", text, box_threshold, text_threshold)
-
 with gr.Blocks() as demo:
     with gr.Tab("Text-to-Image generation"):
         with gr.Row():
@@ -55,14 +44,6 @@ with gr.Blocks() as demo:
             [text_input, negative_text_input, seed_input, steps_input],
             out,
         )
-        gr.Examples(
-            [
-                [sample_text, negative_sample_text, 42, 20],
-                [sample_text2, negative_sample_text2, 1561, 25],
-            ],
-            [text_input, negative_text_input, seed_input, steps_input],
-        )
-        
 try:
     demo.queue().launch(debug=True)
 except Exception:
