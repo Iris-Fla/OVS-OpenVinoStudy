@@ -47,7 +47,7 @@ with gr.Blocks() as demo:
             btn.click(
                 en_translate,
                 [input_text],
-                out,
+                out
             )
         with gr.Accordion("日本語から英語へ翻訳", open=False):
             with gr.Row():

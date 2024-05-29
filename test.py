@@ -1,8 +1,14 @@
-# 元のリスト
-fruits = ["apple", "banana", "orange"]
+import pandas as pd
 
-# 1番目と2番目の要素を取り出す
-sublist = fruits[0:2]
+# Load the CSV file
+df = pd.read_csv('dict.csv')
 
-# 結果を表示
-print(sublist)
+# Select a random row
+random_rows = df.sample(n=5)  # Change n to the number of words you want
+
+# Get the 'English' column values from the random rows
+random_words = random_rows["英語"].tolist()
+
+output = ','.join(random_words)
+
+print(output)
