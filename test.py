@@ -1,6 +1,8 @@
-from translator import EnJaTranslator, JaEnTranslator
+# 元のリスト
+fruits = ["apple", "banana", "orange"]
 
-en_translator = EnJaTranslator()
-ja_translator = JaEnTranslator()
-print(en_translator("Hello, I am a translator."))
-print(ja_translator("りんご"))
+# 1番目と2番目の要素を取り出す
+sublist = fruits[0:2]
+
+# 結果を表示
+print(sublist)

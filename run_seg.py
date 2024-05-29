@@ -3,6 +3,7 @@
 
 # In[2]:
 import gradio as gr
+import re
 
 
 import ipywidgets as widgets
@@ -234,7 +235,7 @@ device = widgets.Dropdown(
     value="AUTO",
     description="Device:",
 )
-device
+print(device)
 
 
 # In order to run inference `ov_dino_model` should be compiled. Resulting `ov.CompiledModel` object receives the same arguments as pytorch `forward`/`__call__` methods.
@@ -620,7 +621,7 @@ Image.fromarray(annotated_image)
 # In[28]:
 
 
-def draw_mask(mask, draw, random_color=False):
+def draw_mask(mask, draw, random_color=True):
     import random
 
     if random_color:
@@ -662,18 +663,17 @@ def draw_box(box, draw, label):
 """"
 run_grounding_sam is called every time "Submit" button is clicked
 """
-
-
-
 def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_threshold):
-    print("Running GroundingDINO")
+    print("検出中...!")
     pil_image = Image.fromarray(image)
     size = image.shape[1], image.shape[0]  # size is WH image.shape HWC
+    print(f'Image resolution is {size[0]} x {size[1]}')
 
     boxes_filt, scores, pred_phrases = get_ov_grounding_output(ov_compiled_grounded_dino, pil_image, text_prompt, box_threshold, text_threshold)
 
     # process boxes
     H, W = size[1], size[0]
+    max_score=size[0]*size[1]
     for i in range(boxes_filt.size(0)):
         boxes_filt[i] = boxes_filt[i] * torch.Tensor([W, H, W, H])
         boxes_filt[i][:2] -= boxes_filt[i][2:] / 2
@@ -688,20 +688,59 @@ def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_thresho
 
         mask_image = Image.new("RGBA", size, color=(0, 0, 0, 0))
         mask_draw = ImageDraw.Draw(mask_image)
-        for mask in masks:
-            draw_mask(mask.numpy(), mask_draw, random_color=False)
-
+        
+        total_area = 0
+        for i, mask in enumerate(masks):
+            mask_np = mask.numpy()
+            area = np.sum(mask_np)
+            total_area += area
+            draw_mask(mask_np, mask_draw, random_color=True)
+        score = total_area/max_score
+        formatted_score = round(score, 1)
         pil_image = pil_image.convert("RGBA")
         pil_image.alpha_composite(mask_image)
 
-        return [pil_image, mask_image]
-    if task_type == "det":
-        image_draw = ImageDraw.Draw(pil_image)
-        for box, label in zip(boxes_filt, pred_phrases):
-            draw_box(box, image_draw, label)
-        return [pil_image]
+        return [pil_image, mask_image], formatted_score
     else:
         gr.Warning(f"task_type:{task_type} error!")
+
+# def run_grounding_sam(image, task_type, text_prompt, box_threshold, text_threshold):
+#     print("Running GroundingDINO")
+#     pil_image = Image.fromarray(image)
+#     size = image.shape[1], image.shape[0]  # size is WH image.shape HWC
+
+#     boxes_filt, scores, pred_phrases = get_ov_grounding_output(ov_compiled_grounded_dino, pil_image, text_prompt, box_threshold, text_threshold)
+
+#     # process boxes
+#     H, W = size[1], size[0]
+#     for i in range(boxes_filt.size(0)):
+#         boxes_filt[i] = boxes_filt[i] * torch.Tensor([W, H, W, H])
+#         boxes_filt[i][:2] -= boxes_filt[i][2:] / 2
+#         boxes_filt[i][2:] += boxes_filt[i][:2]
+
+#     if task_type == "seg":
+#         if use_efficient_sam:
+#             masks = predict_efficient_sam_masks(compiled_efficient_sam, pil_image, boxes_filt.numpy())
+#         else:
+#             transformed_boxes = sam_predictor.transform.apply_boxes_torch(boxes_filt, image.shape[:2]).to(PT_DEVICE)
+#             masks = predict_vanilla_sam_masks(compiled_vanilla_sam, image, transformed_boxes)[:, 0]
+
+#         mask_image = Image.new("RGBA", size, color=(0, 0, 0, 0))
+#         mask_draw = ImageDraw.Draw(mask_image)
+#         for mask in masks:
+#             draw_mask(mask.numpy(), mask_draw, random_color=False)
+
+#         pil_image = pil_image.convert("RGBA")
+#         pil_image.alpha_composite(mask_image)
+
+#         return [pil_image, mask_image]
+#     if task_type == "det":
+#         image_draw = ImageDraw.Draw(pil_image)
+#         for box, label in zip(boxes_filt, pred_phrases):
+#             draw_box(box, image_draw, label)
+#         return [pil_image]
+#     else:
+#         gr.Warning(f"task_type:{task_type} error!")
 
 
 # You can run interactive app with your own image and text prompts. To define prompt specify comma (or conjunction) separated names of objects you wish to segment. For demonstration, this demo already has two predefined examples. If many object are crowded and overlapping please increase threshold values in `Advanced options`.
