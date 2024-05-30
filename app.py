@@ -20,22 +20,26 @@ def ja_translate(text):
 
 #Segapp.py
 score = 0 #塗替え割合の初期値
-count_seg = 1.0 #ボーナス倍率の初期値
+count_seg = 1.1 #ボーナス倍率の初期値
+play_count = 0 #プレイ回数の初期値
 
 def segmentation(image, text):
-    global score,count_seg
+    global score,count_seg,play_count
     #物体検知の結果を返す
     #retrun pil_image, mask_image, formatted_score
+    play_count += 1
     results = run_seg.run_grounding_sam(image, "seg", text, 0.3, 0.25)
-    if results[1] < 0.03:
-        count_seg += 0
-    else:
-        count_seg += 0.2
-    score += results[1]*100*round(count_seg, 1)
     if results:
         first_image = results[0][0]
     else:
         first_image = None
+    if play_count == 3:
+        return results[0], gr.update(value=first_image),gr.update(value="# 最終的なスコア→" + str(score) + "Point!"),gr.update(value="## 始めるには別の画像で始めるを押してください")
+    score += results[1] * 100 * round(count_seg, 1)
+    print(results[1])
+    count_seg += 0.2 
+    count_seg = round(count_seg, 1)
+    print(score)
     return results[0], gr.update(value=first_image),gr.update(value="# " + str(score) + "Point!"),gr.update(value="## 現在のボーナス倍率" + str(count_seg) + "倍")
 
 def reset():#リセットボタンが押されたときの処理
@@ -131,7 +135,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
                     [text_input],
                     out,
                 )
-    with gr.Tab("物体検知ゲーム"):
+    with gr.Tab("物体検知ゲーム🔎"):
         with gr.Row():
             with gr.Column():
                 input_image = gr.Image(label="画像")
@@ -143,12 +147,12 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         with gr.Accordion("ゲームのルール", open=False):
             gr.Markdown("# ゲームのルール👾")
             gr.Markdown("### 1. 左上のボックスをクリックして画像を入れてね")
-            gr.Markdown("### 2. 画像の中にある物体を見つけて英語で入力してね")
-            gr.Markdown("### (色が塗られた範囲が大きい程スコアが高くなるよ！)")
-            gr.Markdown("### 3. 見つけた回数によってボーナス倍率が上がるよ！")
+            gr.Markdown("### 2. 三回まで回答することができます！")
+            gr.Markdown("### 3. 画像の中にある物体を見つけて英語で入力してね(単語ずつ)")
+            gr.Markdown("### 4. 回答回数によってボーナス倍率が上がるよ！(1回目:1倍,2回目:1.2倍,3回目:1.4倍)")
             gr.Markdown("# 高スコアのコツ👑")
-            gr.Markdown("## 1. 画像の中にある物体を正確に回答するとボーナス倍率が上がりやすい(色や形,ポーズ,大きさ等で分ける)")
-            gr.Markdown("## 2. 一番目立つ物体を最後に回答する")
+            gr.Markdown("## 1. 大きい物の方がポイントが貰えます")
+            gr.Markdown("## 2. 一番目立つ物体を3回目に回答する")
             gr.Markdown("# 既知のエラー🚨")
             gr.Markdown("## 画像が読み込めない場合は何度か入れ直してみてください")
         with gr.Row():
