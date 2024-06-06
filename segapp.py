@@ -31,7 +31,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
         with gr.Row():
             with gr.Column():
                 input_image = gr.Image(label="画像")
-                input_text = gr.Textbox(value="Candy", label="見つけた物を英語で入力してね")
+                input_text = gr.Textbox(value="", label="見つけた物を英語で入力してね")
             out = gr.Gallery(preview=True, object_fit="scale-down")
         with gr.Row():
             btn = gr.Button(value="けんさくする🔎",variant="primary")
