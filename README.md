@@ -2,7 +2,9 @@
 <img src="https://img.shields.io/badge/-Python3.10-FAEB7E.svg?logo=python&style=for-the-badge">
 <img src="https://img.shields.io/badge/-OpenVino-6F51A1.svg?logo=intel&style=for-the-badge">
 
-コードに関してはこちらのサイトを基に作成しています(Link)[https://axross-recipe.com/recipes/1402]
+## 記事に掲載されました
+窓の杜にてコンテストの概要やアプリケーションについて取り上げられました✨
+[Link](https://forest.watch.impress.co.jp/docs/special/1598339.html)
 
 ## 実行環境
 
