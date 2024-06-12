@@ -3,6 +3,7 @@
 <img src="https://img.shields.io/badge/-OpenVino-6F51A1.svg?logo=intel&style=for-the-badge">
 
 ## 記事に掲載されました
+![OVSTUDY](https://github.com/Iris-Fla/OVS-OpenVinoStudy/assets/103801589/20703373-245e-452b-a6fc-d34287f8a3d9)
 窓の杜にてコンテストの概要やアプリケーションについて取り上げられました✨
 [Link](https://forest.watch.impress.co.jp/docs/special/1598339.html)
 
