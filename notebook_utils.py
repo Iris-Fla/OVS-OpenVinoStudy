@@ -5,6 +5,8 @@
 
 
 import os
+import platform
+import sys
 import threading
 import time
 import urllib.parse
@@ -13,8 +15,12 @@ from pathlib import Path
 from typing import List, NamedTuple, Optional, Tuple
 
 import numpy as np
-from openvino.runtime import Core, get_version
+from openvino.runtime import Core, Type, get_version
 from IPython.display import HTML, Image, display
+
+import openvino as ov
+from openvino.runtime.passes import Manager, MatcherPass, WrapType, Matcher
+from openvino.runtime import opset10 as ops
 
 
 # ## Files
@@ -24,27 +30,78 @@ from IPython.display import HTML, Image, display
 # In[ ]:
 
 
-def load_image(path: str) -> np.ndarray:
-    """
-    Loads an image from `path` and returns it as BGR numpy array. `path`
-    should point to an image file, either a local filename or a url. The image is
-    not stored to the filesystem. Use the `download_file` function to download and
-    store an image.
+def device_widget(default="AUTO", exclude=None, added=None, description="Device:"):
+    import openvino as ov
+    import ipywidgets as widgets
 
-    :param path: Local path name or URL to image.
+    core = ov.Core()
+
+    supported_devices = core.available_devices + ["AUTO"]
+    exclude = exclude or []
+    if exclude:
+        for ex_device in exclude:
+            if ex_device in supported_devices:
+                supported_devices.remove(ex_device)
+
+    added = added or []
+    if added:
+        for add_device in added:
+            if add_device not in supported_devices:
+                supported_devices.append(add_device)
+
+    device = widgets.Dropdown(
+        options=supported_devices,
+        value=default,
+        description=description,
+        disabled=False,
+    )
+    return device
+
+
+def quantization_widget(default=True):
+    import ipywidgets as widgets
+
+    to_quantize = widgets.Checkbox(
+        value=default,
+        description="Quantization",
+        disabled=False,
+    )
+
+    return to_quantize
+
+
+def pip_install(*args):
+    import subprocess  # nosec - disable B404:import-subprocess check
+
+    cli_args = []
+    for arg in args:
+        cli_args.extend(str(arg).split(" "))
+    subprocess.run([sys.executable, "-m", "pip", "install", *cli_args], shell=(platform.system() == "Windows"), check=True)
+
+
+def load_image(name: str, url: str = None) -> np.ndarray:
+    """
+    Loads an image by `url` and returns it as BGR numpy array. The image is
+    stored to the filesystem with name `name`. If the image file already exists
+    loads the local image.
+
+    :param name: Local path name of the image.
+    :param url: url to the image
     :return: image as BGR numpy array
     """
     import cv2
     import requests
 
-    if path.startswith("http"):
+    if not Path(name).exists():
         # Set User-Agent to Mozilla because some websites block
         # requests with User-Agent Python
-        response = requests.get(path, headers={"User-Agent": "Mozilla/5.0"})
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
         array = np.asarray(bytearray(response.content), dtype="uint8")
         image = cv2.imdecode(array, -1)  # Loads the image as BGR
+        cv2.imwrite(name, image)
     else:
-        image = cv2.imread(path)
+        image = cv2.imread(name)
+
     return image
 
 
@@ -53,8 +110,6 @@ def download_file(
     filename: PathLike = None,
     directory: PathLike = None,
     show_progress: bool = True,
-    silent: bool = False,
-    timeout: int = 10,
 ) -> PathLike:
     """
     Download a file from a url and save it to the local filesystem. The file is saved to the
@@ -84,11 +139,13 @@ def download_file(
             "Use the `directory` parameter to specify a target directory for the downloaded file."
         )
 
+    filepath = Path(directory) / filename if directory is not None else filename
+    if filepath.exists():
+        return filepath.resolve()
+
     # create the directory if it does not exist, and add the directory to the filename
     if directory is not None:
-        directory = Path(directory)
-        directory.mkdir(parents=True, exist_ok=True)
-        filename = directory / Path(filename)
+        Path(directory).mkdir(parents=True, exist_ok=True)
 
     try:
         response = requests.get(url=url, headers={"User-agent": "Mozilla/5.0"}, stream=True)
@@ -105,9 +162,9 @@ def download_file(
     except requests.exceptions.RequestException as error:
         raise Exception(f"File downloading failed with error: {error}") from None
 
-    # download the file if it does not exist, or if it exists with an incorrect file size
+    # download the file if it does not exist
     filesize = int(response.headers.get("Content-length", 0))
-    if not filename.exists() or (os.stat(filename).st_size != filesize):
+    if not filepath.exists():
         with tqdm_notebook(
             total=filesize,
             unit="B",
@@ -116,18 +173,17 @@ def download_file(
             desc=str(filename),
             disable=not show_progress,
         ) as progress_bar:
-            with open(filename, "wb") as file_object:
+            with open(filepath, "wb") as file_object:
                 for chunk in response.iter_content(chunk_size):
                     file_object.write(chunk)
                     progress_bar.update(len(chunk))
                     progress_bar.refresh()
     else:
-        if not silent:
-            print(f"'{filename}' already exists.")
+        print(f"'{filepath}' already exists.")
 
     response.close()
 
-    return filename.resolve()
+    return filepath.resolve()
 
 
 def download_ir_model(model_xml_url: str, destination_folder: PathLike = None) -> PathLike:
@@ -203,11 +259,15 @@ class VideoPlayer:
     :param skip_first_frames: Skip first N frames.
     """
 
-    def __init__(self, source, size=None, flip=False, fps=None, skip_first_frames=0):
+    def __init__(self, source, size=None, flip=False, fps=None, skip_first_frames=0, width=1280, height=720):
         import cv2
 
         self.cv2 = cv2  # This is done to access the package in class methods
         self.__cap = cv2.VideoCapture(source)
+        # try HD by default to get better video quality
+        self.__cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.__cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
         if not self.__cap.isOpened():
             raise RuntimeError(f"Cannot open {'camera' if isinstance(source, int) else ''} {source}")
         # skip first N frames
@@ -611,3 +671,72 @@ def check_openvino_version(version: str) -> bool:
         return False
     else:
         return True
+
+
+packed_layername_tensor_dict_list = [{"name": "aten::mul/Multiply"}]
+
+
+class ReplaceTensor(MatcherPass):
+    def __init__(self, packed_layername_tensor_dict_list):
+        MatcherPass.__init__(self)
+        self.model_changed = False
+
+        param = WrapType("opset10.Multiply")
+
+        def callback(matcher: Matcher) -> bool:
+            root = matcher.get_match_root()
+            if root is None:
+                return False
+            for y in packed_layername_tensor_dict_list:
+                root_name = root.get_friendly_name()
+                if root_name.find(y["name"]) != -1:
+                    max_fp16 = np.array([[[[-np.finfo(np.float16).max]]]]).astype(np.float32)
+                    new_tenser = ops.constant(max_fp16, Type.f32, name="Constant_4431")
+                    root.set_arguments([root.input_value(0).node, new_tenser])
+                    packed_layername_tensor_dict_list.remove(y)
+
+            return True
+
+        self.register_matcher(Matcher(param, "ReplaceTensor"), callback)
+
+
+def optimize_bge_embedding(model_path, output_model_path):
+    """
+    optimize_bge_embedding used to optimize BGE model for NPU device
+
+    Arguments:
+        model_path {str} -- original BGE IR model path
+        output_model_path {str} -- Converted BGE IR model path
+    """
+    core = Core()
+    ov_model = core.read_model(model_path)
+    manager = Manager()
+    manager.register_pass(ReplaceTensor(packed_layername_tensor_dict_list))
+    manager.run_passes(ov_model)
+    ov.save_model(ov_model, output_model_path, compress_to_fp16=False)
+
+
+def collect_telemetry(file: str = ""):
+    """
+    The function only tracks that the notebooks cell was executed and does not include any personally identifiable information (PII).
+    """
+    try:
+        import os
+        import requests
+        import platform
+        from pathlib import Path
+
+        if os.getenv("SCARF_NO_ANALYTICS") == "1" or os.getenv("DO_NOT_TRACK") == "1":
+            return
+        url = "https://openvino.gateway.scarf.sh/telemetry"
+        params = {
+            "notebook_dir": Path(__file__).parent.name,
+            "platform": platform.system(),
+            "arch": platform.machine(),
+            "python_version": platform.python_version(),
+        }
+        if file:
+            params["file"] = file
+        requests.get(url, params=params)
+    except Exception:
+        pass

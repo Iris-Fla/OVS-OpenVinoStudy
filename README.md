@@ -27,5 +27,17 @@ venv\Scripts\Activate.ps1
 pip install -r .\requirements.txt
 ```
 
+## 起動
+clone
+```
+git clone https://github.com/wenyi5608/GroundingDINO/
+git clone https://github.com/yformer/EfficientSAM
+git clone https://github.com/IDEA-Research/Grounded-Segment-Anything
+```
+```
+python app.py
+```
+
+
 ## IntelOpenVinoに対応しているか確認する方法
 check.pyを動かしてInfo:GPUにAvailable_Devicesが1以上あることを確認してください。

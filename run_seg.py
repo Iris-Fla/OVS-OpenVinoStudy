@@ -33,7 +33,6 @@ repo_dir = Path("Grounded-Segment-Anything")
 ground_dino_dir = Path("GroundingDINO")
 efficient_sam_dir = Path("EfficientSAM")
 
-# we use grounding dino from a fork which contains modifications that allow conversion to OpenVINO IR format
 # if not ground_dino_dir.exists():
 #     get_ipython().system('git clone https://github.com/wenyi5608/GroundingDINO/')
 # if use_efficient_sam and not efficient_sam_dir.exists():

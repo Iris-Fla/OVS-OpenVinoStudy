@@ -1,6 +1,6 @@
 import gradio as gr
 import run_seg
-import run_stablediffusion
+# import run_stablediffusion
 import pandas as pd
 import csv
 import os
@@ -97,44 +97,44 @@ def display_csv():
         return pd.DataFrame(columns=["English", "Japanese"])
 
 #run_stablediffusion.py
-def generate_from_text(text ,_=gr.Progress(track_tqdm=True)):
-    print(text)
-    result = run_stablediffusion.ov_pipe(text, negative_prompt="bad quality", num_inference_steps=40, seed=810)
-    return result["sample"][0]
+# def generate_from_text(text ,_=gr.Progress(track_tqdm=True)):
+#     print(text)
+#     result = run_stablediffusion.ov_pipe(text, negative_prompt="bad quality", num_inference_steps=40, seed=810)
+#     return result["sample"][0]
 
-def random_generate_from_text(text ,_=gr.Progress(track_tqdm=True)):
-    r_w = random_words()
-    new_text = r_w + text
-    print(new_text)
-    result = run_stablediffusion.ov_pipe(new_text, negative_prompt="bad quality", num_inference_steps=40, seed=810)
-    return result["sample"][0]
+# def random_generate_from_text(text ,_=gr.Progress(track_tqdm=True)):
+#     r_w = random_words()
+#     new_text = r_w + text
+#     print(new_text)
+#     result = run_stablediffusion.ov_pipe(new_text, negative_prompt="bad quality", num_inference_steps=40, seed=810)
+#     return result["sample"][0]
 
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
-    with gr.Tab("AI画像生成🤖"):
-        with gr.Row():
-            with gr.Column():
-                gr.Markdown("# StableDiffusion+OpenVino+NPUを用いたAI画像生成🤖")
-                text_input = gr.Textbox(lines=3, label="どんな世界を生成する？🌏")
-                btn = gr.Button("生成する🎨",variant="primary")
-                random_btn = gr.Button("辞書から単語を入れて生成する🔮")
-                with gr.Accordion("画像生成の使い方"):
-                    gr.Markdown("## 1. 左上のテキストボックスに生成したい要素を入れてね")
-                    gr.Markdown("### 例: The beautiful moment of the falling sunset seen from the beach,cloud,sky,sea")
-                    gr.Markdown("### (要素毎にカンマ(,)で区切ると生成しやすいよ！)")
-                    gr.Markdown("### (英語が分からない時は翻訳システムを使ってね！)")
-                    gr.Markdown("### 2. 生成ボタンを押して2分程待てば完成！")
-                    gr.Markdown("# 既知のエラー🚨")
-                    gr.Markdown("## 単語を入れて生成する際にエラーが出る場合はdict.csvに問題があります")
-            out = gr.Image(label="生成結果", type="pil")
-            random_btn.click(
-                random_generate_from_text,
-                [text_input],
-                out,)
-            btn.click(
-                    generate_from_text,
-                    [text_input],
-                    out,
-                )
+    # with gr.Tab("AI画像生成🤖"):
+    #     with gr.Row():
+    #         with gr.Column():
+    #             gr.Markdown("# StableDiffusion+OpenVino+NPUを用いたAI画像生成🤖")
+    #             text_input = gr.Textbox(lines=3, label="どんな世界を生成する？🌏")
+    #             btn = gr.Button("生成する🎨",variant="primary")
+    #             random_btn = gr.Button("辞書から単語を入れて生成する🔮")
+    #             with gr.Accordion("画像生成の使い方"):
+    #                 gr.Markdown("## 1. 左上のテキストボックスに生成したい要素を入れてね")
+    #                 gr.Markdown("### 例: The beautiful moment of the falling sunset seen from the beach,cloud,sky,sea")
+    #                 gr.Markdown("### (要素毎にカンマ(,)で区切ると生成しやすいよ！)")
+    #                 gr.Markdown("### (英語が分からない時は翻訳システムを使ってね！)")
+    #                 gr.Markdown("### 2. 生成ボタンを押して2分程待てば完成！")
+    #                 gr.Markdown("# 既知のエラー🚨")
+    #                 gr.Markdown("## 単語を入れて生成する際にエラーが出る場合はdict.csvに問題があります")
+    #         out = gr.Image(label="生成結果", type="pil")
+    #         random_btn.click(
+    #             random_generate_from_text,
+    #             [text_input],
+    #             out,)
+    #         btn.click(
+    #                 generate_from_text,
+    #                 [text_input],
+    #                 out,
+    #             )
     with gr.Tab("物体検知ゲーム🔎"):
         with gr.Row():
             with gr.Column():
